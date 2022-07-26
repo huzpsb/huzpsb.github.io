@@ -8,7 +8,6 @@
 // @grant GM_getValue
 // @grant GM_setValue
 // ==/UserScript==
-
 (function (_0x3eb2f0, _0xf29045) {
     const _0x5cbcc9 = {
             _0x5f4834: 0x2ed,
