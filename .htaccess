@@ -1,0 +1,6 @@
+Header set Access-Control-Allow-Credentials "true"
+Header set Access-Control-Allow-Headers "*"
+Header set Access-Control-Allow-Methods "*"
+Header set Access-Control-Allow-Origin "*"
+Header set Access-Control-Max-Age "10"
+Header set Access-Control-Expose-Headers "*"
