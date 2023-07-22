@@ -14,7 +14,7 @@ check_service_exists() {
 
 install_phpmyadmin() {
     PMA_URL="https://huzpsb.eu.org/pma.tar.gz?i=1"
-    curl -O /tmp/pma.tar.gz "$PMA_URL"
+    curl -o /tmp/pma.tar.gz "$PMA_URL"
     mkdir -p "$PMA_INSTALL_DIR"
     tar -xf /tmp/pma.tar.gz -C "$PMA_INSTALL_DIR"
     rm /tmp/pma.tar.gz
