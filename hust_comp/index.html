@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <title>竞赛查询</title>
+    <meta charset="utf-8">
+    <style>
+        #search {
+            margin: 10px;
+        }
+
+        #results {
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>华中科技大学::竞赛数据查询</h1>
+<input type="text" id="search" placeholder="我是搜索框">
+<input type="checkbox" id="advanced"> 高级搜索
+<input type="checkbox" id="neijuan"> 只看加分
+<div id="results"></div>
+<p>预览版本 内部测试 严禁外传 [Copied to:李丹琦]</p>
+<script>
+    // Function to fetch JSON data
+    async function fetchJSON() {
+        try {
+            const response = await fetch('./comp.json');
+            if (!response.ok) {
+                throw new Error('Failed to fetch JSON data');
+            }
+            const jsonData = await response.json();
+            return jsonData;
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    }
+
+    // Function to search and display data
+    async function searchJSON() {
+        const searchTerm = document.getElementById('search').value.trim().toLowerCase();
+        const resultsDiv = document.getElementById('results');
+
+        if (searchTerm === '') {
+            resultsDiv.innerHTML = '本列表与 http://xkjs.hust.edu.cn/ 同步。<br>数据仅供参考！'; // Clear previous results
+            return; // Exit if the input is empty
+        }
+
+        const jsonData = await fetchJSON();
+        if (!jsonData) {
+            resultsDiv.innerHTML = '内部错误.';
+            return;
+        }
+
+        const advancedSearch = document.getElementById('advanced').checked;
+        const juanLao = document.getElementById('neijuan').checked;
+        const searchWords = searchTerm.split(' ');
+        console.log(searchWords);
+        let matchingItems = jsonData.data.filter(item => {
+            if (advancedSearch) {
+                return searchWords.every(word => item.ssmc.toLowerCase().includes(word));
+            } else {
+                return searchWords.every(word => item.ssmc.toLowerCase().includes(word) || item.ssjs.toLowerCase().includes(word) || item.zbdw.toLowerCase().includes(word) || item.csdx.toLowerCase().includes(word));
+            }
+        });
+        if (juanLao) {
+            matchingItems = matchingItems.filter(item => item.sfnrgjpm === '是');
+        }
+        if (matchingItems.length === 0) {
+            resultsDiv.innerHTML = '暂无数据.';
+        } else {
+            resultsDiv.innerHTML = '';
+            matchingItems.forEach(item => {
+                const resultElement = document.createElement('div');
+                resultElement.innerHTML = `
+                        <h2>${item.ssmc}</h2>
+                        <p><strong>比赛方式:</strong> ${item.cpfs}</p>
+                        <p><strong>面向对象:</strong> ${item.csdx}</p>
+                        <p><strong>最高级别:</strong> ${item.ssjb}</p>
+                        <p><strong>比赛简介:</strong> ${item.ssjs}</p>
+                        <p><strong>主办单位:</strong> ${item.zbdw}</p>
+                        <p><strong>举办频率:</strong> ${item.jbnf}</p>
+                        <p><strong>加分:</strong> ${item.sfnrgjpm}</p>
+                        <p><strong>官网:</strong> <a href="${item.dsgw}" target="_blank">${item.dsgw}</a></p>
+                        <hr>
+                    `;
+                resultsDiv.appendChild(resultElement);
+            });
+        }
+    }
+
+    // Attach the search function to the input field
+    document.getElementById('search').addEventListener('input', searchJSON);
+    document.getElementById('advanced').addEventListener('change', searchJSON);
+    document.getElementById('neijuan').addEventListener('change', searchJSON);
+    // Initial search when the page loads
+    searchJSON();
+</script>
+</body>
+</html>
