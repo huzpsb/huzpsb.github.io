@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电击设备控制器</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #3498db;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-success {
+            background-color: #2ecc71;
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+
+        .channel-control {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .channel {
+            width: 48%;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+        }
+
+        .channel-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .strength-control {
+            margin-bottom: 15px;
+        }
+
+        .strength-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+
+        .wave-control {
+            margin-top: 15px;
+        }
+
+        .wave-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .wave-btn {
+            padding: 8px;
+            background-color: #ecf0f1;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .wave-btn:hover {
+            background-color: #d6eaf8;
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .connected {
+            background-color: #d5f5e3;
+            color: #27ae60;
+        }
+
+        .disconnected {
+            background-color: #fadbd8;
+            color: #e74c3c;
+        }
+
+        .duration-input {
+            width: 60px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .connection-info {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+<h1>电击设备控制器</h1>
+
+<div class="panel">
+    <div class="panel-title">连接控制</div>
+    <button id="connectBtn" class="btn">连接设备</button>
+    <div id="connectionStatus" class="status disconnected">未连接</div>
+    <div class="connection-info">连接后请使用手机APP扫描右下角二维码绑定设备</div>
+</div>
+
+<div class="panel">
+    <div class="panel-title">强度控制</div>
+    <div class="channel-control">
+        <div class="channel" id="channelA">
+            <div class="channel-title">通道 A</div>
+            <div class="strength-control">
+                <input type="range" min="0" max="100" value="0" class="slider" id="strengthSliderA">
+                <div class="strength-display">
+                    <span>当前: <span id="currentA">0</span></span>
+                    <span>限制: <span id="limitA">0</span></span>
+                </div>
+            </div>
+            <button class="btn" id="setStrengthA">设置强度</button>
+        </div>
+
+        <div class="channel" id="channelB">
+            <div class="channel-title">通道 B</div>
+            <div class="strength-control">
+                <input type="range" min="0" max="100" value="0" class="slider" id="strengthSliderB">
+                <div class="strength-display">
+                    <span>当前: <span id="currentB">0</span></span>
+                    <span>限制: <span id="limitB">0</span></span>
+                </div>
+            </div>
+            <button class="btn" id="setStrengthB">设置强度</button>
+        </div>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-title">波形控制</div>
+    <div class="channel-control">
+        <div class="channel">
+            <div class="channel-title">通道 A 波形</div>
+            <div class="wave-control">
+                <div>
+                    持续时间(秒): <input type="number" min="1" max="60" value="5" class="duration-input" id="durationA">
+                </div>
+                <div class="wave-buttons">
+                    <div class="wave-btn" onclick="playWave('1', 'A')">波形1</div>
+                    <div class="wave-btn" onclick="playWave('2', 'A')">波形2</div>
+                    <div class="wave-btn" onclick="playWave('3', 'A')">波形3</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="channel">
+            <div class="channel-title">通道 B 波形</div>
+            <div class="wave-control">
+                <div>
+                    持续时间(秒): <input type="number" min="1" max="60" value="5" class="duration-input" id="durationB">
+                </div>
+                <div class="wave-buttons">
+                    <div class="wave-btn" onclick="playWave('1', 'B')">波形1</div>
+                    <div class="wave-btn" onclick="playWave('2', 'B')">波形2</div>
+                    <div class="wave-btn" onclick="playWave('3', 'B')">波形3</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-title">系统信息</div>
+    <div>
+        <p>连接ID: <span id="connectionId">未连接</span></p>
+        <p>目标设备ID: <span id="targetId">未连接</span></p>
+    </div>
+</div>
+
+<script src="mock.js"></script>
+<script>
+    // 连接按钮事件
+    document.getElementById('connectBtn').addEventListener('click', function() {
+        connectWs();
+    });
+
+    // 更新连接状态显示
+    function updateConnectionStatus() {
+        const statusElement = document.getElementById('connectionStatus');
+        if (connected) {
+            statusElement.textContent = '已连接';
+            statusElement.className = 'status connected';
+            document.getElementById('connectBtn').textContent = '已连接';
+            document.getElementById('connectBtn').className = 'btn btn-success';
+            document.getElementById('connectBtn').disabled = true;
+            document.getElementById('connectionId').textContent = connectionId || '未知';
+            document.getElementById('targetId').textContent = targetWSId || '未知';
+        } else {
+            statusElement.textContent = '未连接';
+            statusElement.className = 'status disconnected';
+            document.getElementById('connectBtn').textContent = '连接设备';
+            document.getElementById('connectBtn').className = 'btn';
+            document.getElementById('connectBtn').disabled = false;
+            document.getElementById('connectionId').textContent = '未连接';
+            document.getElementById('targetId').textContent = '未连接';
+        }
+    }
+
+    // 设置强度（前端UI函数）
+    function setStrengthUI(channel) {
+        const sliderId = channel === 'A' ? 'strengthSliderA' : 'strengthSliderB';
+        const strength = document.getElementById(sliderId).value;
+        // 调用mock.js中的setStrength函数
+        setStrength(strength, channel);
+
+        // 更新显示
+        if (channel === 'A') {
+            document.getElementById('currentA').textContent = strength;
+        } else {
+            document.getElementById('currentB').textContent = strength;
+        }
+    }
+
+    // 播放波形（前端UI函数）
+    function playWave(waveId, channel) {
+        const durationId = channel === 'A' ? 'durationA' : 'durationB';
+        const duration = document.getElementById(durationId).value;
+        play(waveId, duration, channel);
+    }
+
+    // 初始化
+    function init() {
+        // 绑定强度设置按钮事件
+        document.getElementById('setStrengthA').addEventListener('click', function() {
+            setStrengthUI('A');
+        });
+
+        document.getElementById('setStrengthB').addEventListener('click', function() {
+            setStrengthUI('B');
+        });
+
+        // 监听强度变化
+        document.getElementById('strengthSliderA').addEventListener('input', function() {
+            document.getElementById('currentA').textContent = this.value;
+        });
+
+        document.getElementById('strengthSliderB').addEventListener('input', function() {
+            document.getElementById('currentB').textContent = this.value;
+        });
+
+        updateConnectionStatus();
+    }
+
+    // 页面加载完成后初始化
+    window.addEventListener('DOMContentLoaded', init);
+
+    // 模拟从设备接收到的数据更新
+    setInterval(function() {
+        document.getElementById('limitA').textContent = limitA;
+        document.getElementById('limitB').textContent = limitB;
+        updateConnectionStatus();
+    }, 1000);
+</script>
+</body>
+</html>
