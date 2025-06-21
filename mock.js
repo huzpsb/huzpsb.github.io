@@ -154,7 +154,7 @@ function play(waveId, duration, channel) {
         alert("无效的波形ID！");
         return;
     }
-    sendWsMsg({type: "clientMsg", message: `${channel}:${wave}`, time: duration, channel: channel})
+    sendWsMsg({type: "clientMsg", message: `${channel}:${wave}`, message2: "N", time: duration, channel: channel})
 }
 
 
