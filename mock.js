@@ -28,7 +28,7 @@ var limitB = 0;
 function sendWsMsg(messageObj) {
     messageObj.clientId = connectionId;
     messageObj.targetId = targetWSId;
-    if (!messageObj.hasOwnProperty('type'))
+    if (!messageObj.hasOwnProperty("type"))
         messageObj.type = "msg";
     console.log(JSON.stringify((messageObj)));
     wsConn.send(JSON.stringify((messageObj)));
@@ -69,7 +69,7 @@ function connectWs() {
         console.log("收到中继回传:", message);
 
         switch (message.type) {
-            case 'bind':
+            case "bind":
                 if (!message.targetId) {
                     connectionId = message.clientId;
                     const connectionUrl = "https://www.dungeon-lab.com/app-download.php#DGLAB-SOCKET#wss://coyote.babyfang.cn/" + connectionId;
@@ -105,17 +105,16 @@ function connectWs() {
                     targetWSId = message.targetId;
                 }
                 break;
-            case 'break':
-            case 'error':
+            case "break":
+            case "error":
                 wsConn.close();
                 break;
-            case 'msg':
+            case "msg":
                 // 定义一个空数组来存储结果
                 const result = [];
                 if (message.message.includes("strength")) {
                     const numbers = message.message.match(/\d+/g).map(Number);
                     result.push({type: "strength", numbers});
-
                     console.log("channel-a:", numbers[0]);
                     console.log("channel-b:", numbers[1]);
                     console.log("limit-a:", numbers[2]);
@@ -141,25 +140,47 @@ function setStrength(strength, channel) {
         alert("请先连接设备！");
         return;
     }
-    sendWsMsg({type: 4, message: `strength-${channel === 'A' ? 1 : 2}+2+${strength}`})
+    sendWsMsg({type: 4, message: `strength-${channel === "A" ? 1 : 2}+2+${strength}`})
 }
 
-function play(waveId, duration, channel) {
+function play(duration, waveId1, waveId2) {
     if (!connected) {
         alert("请先连接设备！");
         return;
     }
-    const wave = waveData[waveId];
-    if (!wave) {
-        alert("无效的波形ID！");
-        return;
+
+    if (waveId1) {
+        waveId1 = waveData[waveId1] || (alert("指定的波形：" + waveId1 + "不存在！"), "None");
+    } else {
+        waveId1 = "None";
     }
-    sendWsMsg({type: "clientMsg", message: `${channel}:${wave}`, message2: "N", time: duration, channel: channel})
+
+    if (waveId1 !== "None") {
+        waveId1 = "A:" + waveId1;
+    }
+
+    if (waveId2) {
+        waveId2 = waveData[waveId2] || (alert("指定的波形：" + waveId2 + "不存在！"), "None");
+    } else {
+        waveId2 = "None";
+    }
+
+    if (waveId2 !== "None") {
+        waveId2 = "B:" + waveId2;
+    }
+
+    if (waveId1 !== "None" || waveId2 !== "None") {
+        sendWsMsg({
+            type: "clientMsg",
+            message: waveId1,
+            message2: waveId2,
+            time1: duration,
+            time2: duration
+        });
+    }
 }
 
 
 loadScript("https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js", function () {
     connectWs();
 });
-
-

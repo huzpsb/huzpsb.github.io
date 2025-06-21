@@ -25,7 +25,7 @@
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .panel-title {
@@ -121,6 +121,11 @@
             background-color: #d6eaf8;
         }
 
+        .wave-btn.active {
+            background-color: #3498db;
+            color: white;
+        }
+
         .status {
             text-align: center;
             padding: 10px;
@@ -174,25 +179,25 @@
         <div class="channel" id="channelA">
             <div class="channel-title">通道 A</div>
             <div class="strength-control">
-                <input type="range" min="0" max="100" value="0" class="slider" id="strengthSliderA">
+                <input type="range" min="0" max="200" value="0" class="slider" id="strengthSliderA"
+                       onchange="handleChange('A')">
                 <div class="strength-display">
                     <span>当前: <span id="currentA">0</span></span>
                     <span>限制: <span id="limitA">0</span></span>
                 </div>
             </div>
-            <button class="btn" id="setStrengthA">设置强度</button>
         </div>
 
         <div class="channel" id="channelB">
             <div class="channel-title">通道 B</div>
             <div class="strength-control">
-                <input type="range" min="0" max="100" value="0" class="slider" id="strengthSliderB">
+                <input type="range" min="0" max="200" value="0" class="slider" id="strengthSliderB"
+                       onchange="handleChange('B')">
                 <div class="strength-display">
                     <span>当前: <span id="currentB">0</span></span>
                     <span>限制: <span id="limitB">0</span></span>
                 </div>
             </div>
-            <button class="btn" id="setStrengthB">设置强度</button>
         </div>
     </div>
 </div>
@@ -203,13 +208,10 @@
         <div class="channel">
             <div class="channel-title">通道 A 波形</div>
             <div class="wave-control">
-                <div>
-                    持续时间(秒): <input type="number" min="1" max="60" value="5" class="duration-input" id="durationA">
-                </div>
                 <div class="wave-buttons">
-                    <div class="wave-btn" onclick="playWave('1', 'A')">波形1</div>
-                    <div class="wave-btn" onclick="playWave('2', 'A')">波形2</div>
-                    <div class="wave-btn" onclick="playWave('3', 'A')">波形3</div>
+                    <div class="wave-btn" onclick="playWave(1, 'A')" id="a1">波形1</div>
+                    <div class="wave-btn" onclick="playWave(2, 'A')" id="a2">波形2</div>
+                    <div class="wave-btn" onclick="playWave(3, 'A')" id="a3">波形3</div>
                 </div>
             </div>
         </div>
@@ -217,13 +219,10 @@
         <div class="channel">
             <div class="channel-title">通道 B 波形</div>
             <div class="wave-control">
-                <div>
-                    持续时间(秒): <input type="number" min="1" max="60" value="5" class="duration-input" id="durationB">
-                </div>
                 <div class="wave-buttons">
-                    <div class="wave-btn" onclick="playWave('1', 'B')">波形1</div>
-                    <div class="wave-btn" onclick="playWave('2', 'B')">波形2</div>
-                    <div class="wave-btn" onclick="playWave('3', 'B')">波形3</div>
+                    <div class="wave-btn" onclick="playWave(1, 'B')" id="b1">波形1</div>
+                    <div class="wave-btn" onclick="playWave(2, 'B')" id="b2">波形2</div>
+                    <div class="wave-btn" onclick="playWave(3, 'B')" id="b3">波形3</div>
                 </div>
             </div>
         </div>
@@ -231,7 +230,7 @@
 </div>
 
 <div class="panel">
-    <div class="panel-title">系统信息</div>
+    <div class="panel-title">系统信息 （截图请打码）</div>
     <div>
         <p>连接ID: <span id="connectionId">未连接</span></p>
         <p>目标设备ID: <span id="targetId">未连接</span></p>
@@ -248,14 +247,70 @@
         4，开始游玩。<br/><br/>
         <b>S发码 M扫码 S先开 M后进 和标准控制器是反着的 请知悉</b><br/><br/>
 
-        后端 协议 硬件 版权所有 <a href="https://github.com/DG-LAB-OPENSOURCE/DG-LAB-OPENSOURCE/blob/main/socket/README.md">DG-LAB官方</a>。huzpsb仅作简单美化。
+        后端 协议 硬件 版权所有 <a
+            href="https://github.com/DG-LAB-OPENSOURCE/DG-LAB-OPENSOURCE/blob/main/socket/README.md">DG-LAB官方</a>。huzpsb仅作简单美化。
     </div>
 </div>
 
 <script src="mock.js"></script>
 <script>
+    const a1 = document.getElementById('a1');
+    const a2 = document.getElementById('a2');
+    const a3 = document.getElementById('a3');
+    const b1 = document.getElementById('b1');
+    const b2 = document.getElementById('b2');
+    const b3 = document.getElementById('b3');
+
+    let w1 = 0;
+    let w2 = 0;
+
+    let strengthA = 0;
+    let strengthB = 0;
+
+    function handleChange(channel) {
+        if (channel === 'A') {
+            const slider = document.getElementById('strengthSliderA');
+            strengthA = parseInt(slider.value);
+            if (strengthA > limitA) {
+                slider.value = limitA;
+                document.getElementById('currentA').textContent = limitA;
+                strengthA = limitA;
+            }
+            if (strengthA === 0) {
+                a1.classList.remove('active');
+                a2.classList.remove('active');
+                a3.classList.remove('active');
+                w1 = 0;
+            } else {
+                if (w1 === 0) {
+                    a1.classList.add('active');
+                    w1 = 1;
+                }
+            }
+        } else {
+            const slider = document.getElementById('strengthSliderB');
+            strengthB = parseInt(slider.value);
+            if (strengthB > limitB) {
+                slider.value = limitB;
+                document.getElementById('currentB').textContent = limitB;
+                strengthB = limitB;
+            }
+            if (strengthB === 0) {
+                b1.classList.remove('active');
+                b2.classList.remove('active');
+                b3.classList.remove('active');
+                w2 = 0;
+            } else {
+                if (w2 === 0) {
+                    b1.classList.add('active');
+                    w2 = 1;
+                }
+            }
+        }
+    }
+
     // 连接按钮事件
-    document.getElementById('connectBtn').addEventListener('click', function() {
+    document.getElementById('connectBtn').addEventListener('click', function () {
         connectWs();
     });
 
@@ -281,59 +336,84 @@
         }
     }
 
-    // 设置强度（前端UI函数）
-    function setStrengthUI(channel) {
-        const sliderId = channel === 'A' ? 'strengthSliderA' : 'strengthSliderB';
-        const strength = document.getElementById(sliderId).value;
-        // 调用mock.js中的setStrength函数
-        setStrength(strength, channel);
-
-        // 更新显示
+    // 播放波形（前端UI函数）
+    function playWave(waveId, channel) {
         if (channel === 'A') {
-            document.getElementById('currentA').textContent = strength;
+            if (strengthA === 0) {
+                return;
+            }
+            a1.classList.remove('active');
+            a2.classList.remove('active');
+            a3.classList.remove('active');
+            if (waveId === 1) {
+                a1.classList.add('active');
+                w1 = 1;
+            } else if (waveId === 2) {
+                a2.classList.add('active');
+                w1 = 2;
+            } else if (waveId === 3) {
+                a3.classList.add('active');
+                w1 = 3;
+            }
         } else {
-            document.getElementById('currentB').textContent = strength;
+            if (strengthB === 0) {
+                return;
+            }
+            b1.classList.remove('active');
+            b2.classList.remove('active');
+            b3.classList.remove('active');
+            if (waveId === 1) {
+                b1.classList.add('active');
+                w2 = 1;
+            } else if (waveId === 2) {
+                b2.classList.add('active');
+                w2 = 2;
+            } else if (waveId === 3) {
+                b3.classList.add('active');
+                w2 = 3;
+            }
         }
     }
 
-    // 播放波形（前端UI函数）
-    function playWave(waveId, channel) {
-        const durationId = channel === 'A' ? 'durationA' : 'durationB';
-        const duration = document.getElementById(durationId).value;
-        play(waveId, duration, channel);
-    }
-
-    // 初始化
+    // 组件绑定：让文本框显示滑槽的当前值
     function init() {
-        // 绑定强度设置按钮事件
-        document.getElementById('setStrengthA').addEventListener('click', function() {
-            setStrengthUI('A');
-        });
-
-        document.getElementById('setStrengthB').addEventListener('click', function() {
-            setStrengthUI('B');
-        });
-
-        // 监听强度变化
-        document.getElementById('strengthSliderA').addEventListener('input', function() {
+        document.getElementById('strengthSliderA').addEventListener('input', function () {
             document.getElementById('currentA').textContent = this.value;
         });
 
-        document.getElementById('strengthSliderB').addEventListener('input', function() {
+        document.getElementById('strengthSliderB').addEventListener('input', function () {
             document.getElementById('currentB').textContent = this.value;
         });
 
         updateConnectionStatus();
     }
 
-    // 页面加载完成后初始化
     window.addEventListener('DOMContentLoaded', init);
 
-    // 模拟从设备接收到的数据更新
-    setInterval(function() {
+    // 处理服务端发来的限制
+    setInterval(function () {
         document.getElementById('limitA').textContent = limitA;
         document.getElementById('limitB').textContent = limitB;
+        handleChange('A');
+        handleChange('B');
         updateConnectionStatus();
+    }, 1000);
+
+
+    let lastStrengthA = 0;
+    let lastStrengthB = 0;
+    setInterval(function () {
+        if (connected) {
+            if (lastStrengthA !== strengthA) {
+                setStrength(strengthA, 'A');
+                lastStrengthA = strengthA;
+            }
+            if (lastStrengthB !== strengthB) {
+                setStrength(strengthB, 'B');
+                lastStrengthB = strengthB;
+            }
+            play(1, w1, w2);
+        }
     }, 1000);
 </script>
 </body>
